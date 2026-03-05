@@ -49,11 +49,22 @@ class Item(BaseModel):
     key: str
     value: str
 
+import threading
+
+def periodic_sync():
+    while True:
+        time.sleep(30)
+        sync_from_peers()
+
+@app.on_event("startup")
+def startup():
+    load_store()
+    sync_from_peers()
+    threading.Thread(target=periodic_sync, daemon=True).start()
 
 @app.get("/health")
 def health():
     return {"node": NODE_NAME, "status": "healthy"}
-
 
 @app.post("/internal/replicate")
 def internal_replicate(item: Item):
@@ -62,6 +73,31 @@ def internal_replicate(item: Item):
     persist_store()
     return {"status": "replicated", "node": NODE_NAME}
 
+@app.get("/internal/fullstore")
+def full_store():
+    return store
+
+def sync_from_peers():
+    logger.info(f"[{NODE_NAME}] Starting peer synchronization")
+
+    for peer in PEERS:
+        try:
+            response = requests.get(f"http://{peer}/internal/fullstore", timeout=5)
+            if response.status_code != 200:
+                continue
+
+            peer_store = response.json()
+
+            for key, value in peer_store.items():
+                if key not in store or value["timestamp"] > store[key]["timestamp"]:
+                    store[key] = value
+
+            logger.info(f"[{NODE_NAME}] Synced data from {peer}")
+
+        except Exception as e:
+            logger.warning(f"[{NODE_NAME}] Failed to sync from {peer}: {e}")
+
+    persist_store()
 
 @app.post("/put")
 def put(item: Item):

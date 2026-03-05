@@ -1,0 +1,15 @@
+Stop existing container (if it is already running):
+- Find available containers using `docker ps`
+- Find container id with the name `geo-quorum`
+- `docker stop <id>`
+- `docker rm <id>`
+
+Now spawn container with all the ips' in PEERS - In each laptop, change node name to different locations (mumbai, virginia, etc):
+- docker run -p 5000:5000 -v $(pwd)/app:/app -e NODE_NAME=mumbai -e PEERS=10.226.190.134:5000,10.226.190.236:5000 geo-quorum
+
+Use this command to write to store.json which is automatically synced:
+- curl -v -X POST http://10.226.190.236:5000/put -H "Content-Type: application/json" -d '{"key":"abc","value":"define"}
+
+Use this command to read:
+- curl http://10.226.190.236:5000/get/<key>
+- curl http://10.226.190.236:5000/keys

@@ -63,6 +63,10 @@ def startup():
     sync_from_peers()
     threading.Thread(target=periodic_sync, daemon=True).start()
 
+@app.get("/keys")
+def get_all_keys():
+    return store
+
 @app.get("/health")
 def health():
     return {"node": NODE_NAME, "status": "healthy"}

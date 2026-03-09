@@ -46,8 +46,8 @@ case "$ROLE" in
       exit 1
     fi
     N1="Virginia"
-    N2="New York"
-    N3="Washington DC"
+    N2="NewYork"
+    N3="WashingtonDC"
     SELF_IP="$M2_IP"
     OTHER_A="$M1_IP"
     OTHER_B="$M3_IP"
